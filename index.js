@@ -14,25 +14,20 @@ const client = new MessagingApiClient({
 const app = express()
 app.use(express.json())
 
-// 🔧 加上首頁用來測試 Render 網站
 app.get('/', (req, res) => {
   res.send('✅ LINE Bot Server is running.')
 })
 
-// 🔧 Webhook route，一定要回傳 200
 app.post('/webhook', middleware(config), async (req, res) => {
   try {
-    // 立刻回應 200 給 LINE，不然會 timeout 當錯誤
-    res.sendStatus(200)
-
+    res.sendStatus(200) // 先回 200
     const events = req.body.events
     for (const event of events) {
       await handleEvent(event)
     }
   } catch (err) {
     console.error('Webhook error:', err)
-    // ❗即使錯誤也回 200，LINE 不會重新傳送
-    res.sendStatus(200)
+    res.sendStatus(200) // 失敗也回 200 避免 webhook 被停用
   }
 })
 
@@ -47,10 +42,8 @@ async function handleEvent(event) {
   }
 
   try {
-    await client.replyMessage({
-      replyToken: event.replyToken,
-      messages: [reply],
-    })
+    // 修正這裡的呼叫方式
+    await client.replyMessage(event.replyToken, [reply])
   } catch (err) {
     console.error('Reply error:', err)
   }
