@@ -1,15 +1,13 @@
 require('dotenv').config()
 const express = require('express')
-const { middleware, MessagingApiClient } = require('@line/bot-sdk')
+const line = require('@line/bot-sdk')
 
 const config = {
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
   channelSecret: process.env.CHANNEL_SECRET,
 }
 
-const client = new MessagingApiClient({
-  channelAccessToken: config.channelAccessToken,
-})
+const client = new line.Client(config)
 
 const app = express()
 app.use(express.json())
@@ -18,16 +16,16 @@ app.get('/', (req, res) => {
   res.send('✅ LINE Bot Server is running.')
 })
 
-app.post('/webhook', middleware(config), async (req, res) => {
+app.post('/webhook', line.middleware(config), async (req, res) => {
   try {
-    res.sendStatus(200) // 先回 200
+    res.sendStatus(200)
     const events = req.body.events
     for (const event of events) {
       await handleEvent(event)
     }
   } catch (err) {
     console.error('Webhook error:', err)
-    res.sendStatus(200) // 失敗也回 200 避免 webhook 被停用
+    res.sendStatus(200)
   }
 })
 
@@ -42,7 +40,6 @@ async function handleEvent(event) {
   }
 
   try {
-    // 修正這裡的呼叫方式
     await client.replyMessage(event.replyToken, [reply])
   } catch (err) {
     console.error('Reply error:', err)
