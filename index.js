@@ -35,13 +35,17 @@ async function handleEvent(event) {
       text: text,
     });
   } catch (error) {
-    console.error('Gemini API 錯誤:', error);
-    return client.replyMessage(event.replyToken, {
-      type: 'text',
-      text: '發生錯誤，請稍後再試。',
-    });
-  }
+  console.error('Gemini API 錯誤:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+  return client.replyMessage(event.replyToken, {
+    type: 'text',
+    text: '發生錯誤，請稍後再試。',
+  });
 }
+}
+
+app.get('/webhook', (req, res) => {
+  res.send('Webhook endpoint is working.');
+});
 
 app.post('/webhook', middleware(config), (req, res) => {
   Promise.all(req.body.events.map(handleEvent))
