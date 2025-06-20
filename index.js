@@ -14,34 +14,27 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // 處理收到的訊息
 async function handleEvent(event) {
-  if (event.type !== 'message' || event.message.type !== 'text') {
-    return Promise.resolve(null);
-  }
-
-  const userInput = event.message.text;
+  if (event.type !== 'message' || event.message.type !== 'text') return;
 
   try {
-    // 取得 Gemini 模型
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-    // 呼叫 Gemini 產生回應
-    const result = await model.generateContent(userInput);
-    const response = result.response;
-    const text = response.text() || '抱歉，我暫時無法回應。';
+    const result = await model.generateContent(event.message.text);
+    const text = result.response.text() || '抱歉，我暫時無法回應。';
 
-    // 用 LINE Bot 回覆使用者
     return client.replyMessage(event.replyToken, {
       type: 'text',
-      text: text,
+      text,
     });
   } catch (error) {
-  console.error('Gemini API 錯誤:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
-  return client.replyMessage(event.replyToken, {
-    type: 'text',
-    text: '發生錯誤，請稍後再試。',
-  });
+    console.error('Gemini API 錯誤:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    return client.replyMessage(event.replyToken, {
+      type: 'text',
+      text: '發生錯誤，請稍後再試。',
+    });
+  }
 }
-}
+
 
 app.get('/webhook', (req, res) => {
   res.send('Webhook endpoint is working.');
