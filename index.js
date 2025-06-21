@@ -19,15 +19,27 @@ async function handleEvent(event) {
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-    const result = await model.generateContent(event.message.text);
+    // 加入人格與語言設定
+    const systemPrompt = `
+你是一個親切且知識豐富的 LINE 助理，請使用繁體中文回答問題。
+回答要清楚、簡短，避免使用英文。
+    `;
+
+    // 使用 Chat-like Prompt（多輪訊息格式）
+    const result = await model.generateContent([
+      { role: 'user', parts: [{ text: systemPrompt }] },
+      { role: 'user', parts: [{ text: event.message.text }] }
+    ]);
+
     const text = result.response.text() || '抱歉，我暫時無法回應。';
 
     return client.replyMessage(event.replyToken, {
       type: 'text',
       text,
     });
+
   } catch (error) {
-    console.error('Gemini API 錯誤:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    console.error('Gemini API 錯誤:', error);
     return client.replyMessage(event.replyToken, {
       type: 'text',
       text: '發生錯誤，請稍後再試。',
