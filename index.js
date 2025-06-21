@@ -27,8 +27,8 @@ async function handleEvent(event) {
 
     // 使用 Chat-like Prompt（多輪訊息格式）
     const result = await model.generateContent([
-      { role: 'user', parts: [{ text: systemPrompt }] },
-      { role: 'user', parts: [{ text: event.message.text }] }
+      { text: '你是一個親切的 LINE 助理，請用繁體中文回答問題。' },
+      { text: event.message.text }
     ]);
 
     const text = result.response.text() || '抱歉，我暫時無法回應。';
